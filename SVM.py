@@ -13,15 +13,11 @@ def no_kernel(x, y):
 
 
 def polynomial_kernel(d):
-    def kernel(x, y):
-        return (1 + np.dot(x, y)) ** d
-    return kernel
+    return (lambda x, y: (1 + np.dot(x, y)) ** d)
 
 
 def gaussian_kernel(sigma):
-    def kernel(x, y):
-        return np.exp(-norm(x - y) ** 2 / (2 * (sigma ** 2)))
-    return kernel
+    return (lambda x, y: np.exp(-norm(x - y) ** 2 / (2 * (sigma ** 2))))
 
 def lagrange(X, Y, C, kernel):
     N = len(X)
