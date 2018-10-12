@@ -6,6 +6,7 @@ from pylab import *
 import argparse
 import datetime
 import os
+from sklearn.preprocessing import StandardScaler
 
 
 def no_kernel(x, y):
@@ -82,7 +83,7 @@ def plot(args, data, f):
         else:
             plt.plot(d[0], d[1], 'bx')
 
-    X1, X2 = meshgrid(linspace(-10, 60, 100), linspace(-10, 60, 100))
+    X1, X2 = meshgrid(linspace(-2, 2, 100), linspace(-2, 2, 100))
     w, h = X1.shape
     X1.resize(X1.size)
     X2.resize(X2.size)
@@ -92,8 +93,8 @@ def plot(args, data, f):
     Z.resize((w, h))
     contour(X1, X2, Z, [0.0], colors='k', linewidths=1, origin='lower')
 
-    plt.xlim(-10, 60)
-    plt.ylim(-10, 60)
+    plt.xlim(-2, 2)
+    plt.ylim(-2, 2)
 
     file = str(args.file).replace('sample_', '').replace('.txt', '')
     date = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
@@ -131,7 +132,10 @@ def set_data(args):
     D = len(data[0][:-1])  # dimension of data point
     X = data[:, :D]
     Y = data[:, D:]
-    return data, D, X, Y
+    sc = StandardScaler()
+    sc.fit(X)
+    X_ = sc.transform(X)
+    return np.hstack((X_, Y)), D, X_, Y
 
 
 def main():
