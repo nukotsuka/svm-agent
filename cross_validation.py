@@ -1,6 +1,7 @@
 import SVM
 import numpy as np
 import argparse
+import matplotlib
 
 
 def set_args():
@@ -8,9 +9,12 @@ def set_args():
     parser.add_argument("n", help='division number to divide training data', type=int)
     parser.add_argument("kernel", help='select from "no", "polynomial", "gauss"', type=str)
     parser.add_argument("file", help='input data file name', type=str)
-    parser.add_argument("--d", type=float, help='for polynomial kernel', default=2)
-    parser.add_argument("--sigma", type=float,  help='for gauss kernel', default=3)
-    parser.add_argument("--c", type=float,  help='slack variable for soft margin', default=0.5)
+    parser.add_argument("--d_from", type=float, help='for polynomial kernel', default=1)
+    parser.add_argument("--d_to", type=float, help='for polynomial kernel', default=4)
+    parser.add_argument("--sigma_from", type=float,  help='for gauss kernel', default=2)
+    parser.add_argument("--sigma_to", type=float,  help='for gauss kernel', default=5)
+    parser.add_argument("--c_from", type=float,  help='slack variable for soft margin', default=0.2)
+    parser.add_argument("--c_to", type=float,  help='slack variable for soft margin', default=1.0)
     args = parser.parse_args()
     return args
 
@@ -31,7 +35,7 @@ def cross_validation():
     args = set_args()
     file_name = args.file
     N = args.n  # division number
-    C = args.c
+    C = args.c_from
     kernel = SVM.set_kernel(args)
     X, Y, D = divide_data(file_name, N)
 
