@@ -64,8 +64,8 @@ def classifier(X, Y, D, C, kernel):
         sum += (Y[i] - tmp)
     theta = sum / len(M)
 
-    print('w =', w)
-    print('θ =', theta)
+    # print('w =', w)
+    # print('θ =', theta)
 
     def f(x):
         sum = 0.0
