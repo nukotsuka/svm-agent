@@ -5,6 +5,7 @@ matplotlib.use('Agg')
 from pylab import *
 import argparse
 import datetime
+import os
 
 
 def no_kernel(x, y):
@@ -100,6 +101,8 @@ def plot(args, data, f):
 
     file = str(args.file).replace('sample_', '').replace('.txt', '')
     date = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+    if not os.path.exists('./result'):
+        os.mkdir('./result')
     plt.savefig('./result/' + args.kernel + '_' + file + date + '.png')
     print(args.kernel + '_' + file + date + '.png is saved in result folder.')
     print('please open:')
