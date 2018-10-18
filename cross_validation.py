@@ -50,12 +50,17 @@ def cross_validation():
 
     kernel_param_points = []
     C_points = []
+    kernel_param_name = ''
     if kernel_name == 'polynomial':
         kernel_param_points, C_points = np.meshgrid(d_range, C_range)
+        kernel_param_name = 'd'
     elif kernel_name == 'gauss':
         kernel_param_points, C_points = np.meshgrid(sigma_range, C_range)
+        kernel_param_name = 'sigma'
 
     accuracy_matrix = np.zeros((len(C_range), len(d_range)))
+    max_accuracy = 0
+    max_accuracy_params = {}
     for i in range(len(d_range)):
         for j in range(len(C_range)):
             kernel_param = kernel_param_points[j][i]
@@ -83,12 +88,16 @@ def cross_validation():
 
                 accuracy = (len(Y_test) - np.sum((Y_test.reshape(-1) + predict_result) == 0)) / len(Y_test)
                 total_accuracy += accuracy
-            if kernel_name == 'polynomial':
-                print('d =', kernel_param, 'C =', C, 'accuracy =', total_accuracy / N)
-            elif kernel_name == 'gauss':
-                print('sigma =', kernel_param, 'C =', C, 'accuracy =', total_accuracy / N)
-            accuracy_matrix[j][i] = total_accuracy / N
 
+            average_accuracy = total_accuracy / N
+            print(kernel_param_name, '=', kernel_param, 'C =', C, 'accuracy =', average_accuracy)
+            accuracy_matrix[j][i] = average_accuracy
+            if average_accuracy > max_accuracy:
+                max_accuracy = average_accuracy
+                max_accuracy_params = {kernel_param_name: kernel_param, 'C': C}
+
+    print('max accuracy =', max_accuracy)
+    print('max accuracy params =', max_accuracy_params)
     plot_contour(args, kernel_param_points, C_points, accuracy_matrix)
 
 
