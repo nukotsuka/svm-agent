@@ -75,8 +75,8 @@ def cross_validation():
                 Y_ = Y.copy()
                 X_test = X_.pop(n)
                 Y_test = Y_.pop(n)
-                X_train = np.vstack(X_[m] for m in range(len(X_)))
-                Y_train = np.vstack(Y_[m] for m in range(len(Y_)))
+                X_train = np.vstack(X_)
+                Y_train = np.vstack(Y_)
 
                 f = classifier(X_train, Y_train, D, C, kernel)
 
@@ -99,10 +99,10 @@ def cross_validation():
 
     print('max accuracy =', max_accuracy)
     print('max accuracy params =', max_accuracy_params)
-    plot_contour(args, kernel_param_points, C_points, accuracy_matrix)
+    plot_contour(args, kernel_param_name, kernel_param_points, C_points, accuracy_matrix)
 
 
-def plot_contour(args, kernel_param_points, C_points, accuracy_matrix):
+def plot_contour(args, kernel_param_name, kernel_param_points, C_points, accuracy_matrix):
     plt.axes()
     color_list = ['purple', 'navy', 'blue', 'skyblue', 'darkcyan', 'green', 'olive', 'gold', 'orange', 'red']
     CS = plt.contour(kernel_param_points, C_points, accuracy_matrix, 10, colors=color_list, linewidths=1,
@@ -110,7 +110,7 @@ def plot_contour(args, kernel_param_points, C_points, accuracy_matrix):
     plt.clabel(CS, inline=1, fontsize=10)
     plt.xlim(kernel_param_points.min(), kernel_param_points.max())
     plt.ylim(C_points.min(), C_points.max())
-    plt.xlabel('d', fontsize=16)
+    plt.xlabel(kernel_param_name, fontsize=16)
     plt.ylabel('C', fontsize=16)
     file = str(args.file).replace('sample_', '').replace('.txt', '')
     date = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
