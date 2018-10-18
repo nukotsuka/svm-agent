@@ -18,6 +18,9 @@ def set_args():
     parser.add_argument("--sigma_from", type=float,  help='start point of sigma range for gauss kernel', default=0.5)
     parser.add_argument("--sigma_to", type=float,  help='end point of sigma range for gauss kernel', default=5)
     parser.add_argument("--sigma_interval", type=float,  help='interval of sigma range for gauss kernel', default=0.5)
+    parser.add_argument("--c_from", type=float,  help='start point of slack variable range for soft margin', default=0.1)
+    parser.add_argument("--c_to", type=float,  help='end point of slack variable range for soft margin', default=5)
+    parser.add_argument("--c_interval", type=float,  help='interval of slack variable range for soft margin', default=0.1)
     args = parser.parse_args()
     return args
 
@@ -41,7 +44,7 @@ def cross_validation():
     N = args.n  # division number
     X, Y, D = divide_data(file_name, N)
 
-    C_range = np.linspace(0.1, 5, 50)
+    C_range = np.arange(args.c_from, args.c_to, args.c_interval)
     d_range = np.arange(args.d_from, args.d_to, args.d_interval)
     sigma_range = np.arange(args.sigma_from, args.sigma_to, args.sigma_interval)
 
