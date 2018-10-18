@@ -43,6 +43,7 @@ def cross_validation():
 
     C_range = np.linspace(0.1, 5, 50)
     d_range = np.arange(args.d_from, args.d_to, args.d_interval)
+    sigma_range = np.arange(args.sigma_from, args.sigma_to, args.sigma_interval)
 
     d_points, C_points = np.meshgrid(d_range, C_range)
 
