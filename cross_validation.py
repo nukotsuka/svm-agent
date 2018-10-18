@@ -86,6 +86,10 @@ def cross_validation():
                 print('sigma =', kernel_param, 'C =', C, 'accuracy =', total_accuracy / N)
             accuracy_matrix[j][i] = total_accuracy / N
 
+    plot_contour(args, kernel_param_points, C_points, accuracy_matrix)
+
+
+def plot_contour(args, kernel_param_points, C_points, accuracy_matrix):
     plt.axes()
     color_list = ['purple', 'navy', 'blue', 'skyblue', 'darkcyan', 'green', 'olive', 'gold', 'orange', 'red']
     CS = plt.contour(kernel_param_points, C_points, accuracy_matrix, 10, colors=color_list, linewidths=1,
@@ -103,6 +107,7 @@ def cross_validation():
     print('contour_' + args.kernel + '_' + file + date + '.png is saved in result folder.')
     print('please open:')
     print('open result/contour_' + args.kernel + '_' + file + date + '.png')
+
 
 if __name__ == '__main__':
     cross_validation()
