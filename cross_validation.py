@@ -10,7 +10,7 @@ import datetime
 def set_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("n", help='division number to divide training data', type=int)
-    parser.add_argument("kernel", help='select from "no", "polynomial", "gauss"', type=str)
+    parser.add_argument("kernel", help='select from "polynomial", "gauss"', type=str)
     parser.add_argument("file", help='input data file name', type=str)
     parser.add_argument("--d_from", type=float, help='start point of d range for polynomial kernel', default=1)
     parser.add_argument("--d_to", type=float, help='end point of d range for polynomial kernel', default=10)
@@ -57,6 +57,8 @@ def cross_validation():
     elif kernel_name == 'gauss':
         kernel_param_points, C_points = np.meshgrid(sigma_range, C_range)
         kernel_param_name = 'sigma'
+    else:
+        raise Exception(kernel_name + ' is invalid input. select from "polynomial", "gauss".')
 
     accuracy_matrix = np.zeros((len(C_range), len(d_range)))
     max_accuracy = 0
