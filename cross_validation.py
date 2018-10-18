@@ -45,15 +45,20 @@ def cross_validation():
     d_range = np.arange(args.d_from, args.d_to, args.d_interval)
     sigma_range = np.arange(args.sigma_from, args.sigma_to, args.sigma_interval)
 
-    d_points, C_points = np.meshgrid(d_range, C_range)
+    kernel_param_points = []
+    C_points = []
+    if kernel_name == 'polynomial':
+        kernel_param_points, C_points = np.meshgrid(d_range, C_range)
+    elif kernel_name == 'gauss':
+        kernel_param_points, C_points = np.meshgrid(sigma_range, C_range)
 
     accuracy_matrix = np.zeros((len(C_range), len(d_range)))
     for i in range(len(d_range)):
         for j in range(len(C_range)):
-            d = d_points[j][i]
+            kernel_param = kernel_param_points[j][i]
             C = C_points[j][i]
 
-            kernel = set_kernel(kernel_name, d=d, sigma=0)
+            kernel = set_kernel(kernel_name, d=kernel_param, sigma=kernel_param)
 
             total_accuracy = 0
             for n in range(N):
@@ -75,15 +80,18 @@ def cross_validation():
 
                 accuracy = (len(Y_test) - np.sum((Y_test.reshape(-1) + predict_result) == 0)) / len(Y_test)
                 total_accuracy += accuracy
-
-            print('d =', d, 'C =', C, 'accuracy =', total_accuracy / N)
+            if kernel_name == 'polynomial':
+                print('d =', kernel_param, 'C =', C, 'accuracy =', total_accuracy / N)
+            elif kernel_name == 'gauss':
+                print('sigma =', kernel_param, 'C =', C, 'accuracy =', total_accuracy / N)
             accuracy_matrix[j][i] = total_accuracy / N
 
     plt.axes()
     color_list = ['purple', 'navy', 'blue', 'skyblue', 'darkcyan', 'green', 'olive', 'gold', 'orange', 'red']
-    CS = plt.contour(d_points, C_points, accuracy_matrix, 10, colors=color_list, linewidths=1, origin='lower')
+    CS = plt.contour(kernel_param_points, C_points, accuracy_matrix, 10, colors=color_list, linewidths=1,
+                     origin='lower')
     plt.clabel(CS, inline=1, fontsize=10)
-    plt.xlim(d_points.min(), d_points.max())
+    plt.xlim(kernel_param_points.min(), kernel_param_points.max())
     plt.ylim(C_points.min(), C_points.max())
     plt.xlabel('d', fontsize=16)
     plt.ylabel('C', fontsize=16)
