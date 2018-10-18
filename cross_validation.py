@@ -44,9 +44,9 @@ def cross_validation():
     N = args.n  # division number
     X, Y, D = divide_data(file_name, N)
 
-    C_range = np.arange(args.c_from, args.c_to, args.c_interval)
-    d_range = np.arange(args.d_from, args.d_to, args.d_interval)
-    sigma_range = np.arange(args.sigma_from, args.sigma_to, args.sigma_interval)
+    C_range = np.arange(args.c_from, args.c_to + args.c_interval, args.c_interval)
+    d_range = np.arange(args.d_from, args.d_to + args.d_interval, args.d_interval)
+    sigma_range = np.arange(args.sigma_from, args.sigma_to + args.sigma_interval, args.sigma_interval)
 
     kernel_param_points = []
     C_points = []
