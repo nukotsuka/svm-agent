@@ -1,7 +1,10 @@
-import SVM
-import numpy as np
+from SVM import set_kernel, classifier
 import argparse
 import matplotlib
+matplotlib.use('Agg')
+from pylab import *
+import os
+import datetime
 
 
 def set_args():
@@ -10,11 +13,9 @@ def set_args():
     parser.add_argument("kernel", help='select from "no", "polynomial", "gauss"', type=str)
     parser.add_argument("file", help='input data file name', type=str)
     parser.add_argument("--d_from", type=float, help='for polynomial kernel', default=1)
-    parser.add_argument("--d_to", type=float, help='for polynomial kernel', default=4)
+    parser.add_argument("--d_to", type=float, help='for polynomial kernel', default=10)
     parser.add_argument("--sigma_from", type=float,  help='for gauss kernel', default=2)
     parser.add_argument("--sigma_to", type=float,  help='for gauss kernel', default=5)
-    parser.add_argument("--c_from", type=float,  help='slack variable for soft margin', default=0.2)
-    parser.add_argument("--c_to", type=float,  help='slack variable for soft margin', default=1.0)
     args = parser.parse_args()
     return args
 
@@ -33,36 +34,64 @@ def divide_data(file_name, N):
 
 def cross_validation():
     args = set_args()
+    kernel_name = args.kernel
     file_name = args.file
     N = args.n  # division number
-    C = args.c_from
-    kernel = SVM.set_kernel(args)
     X, Y, D = divide_data(file_name, N)
 
-    total_accuracy = 0
-    for i in range(N):
-        X_ = X.copy()
-        Y_ = Y.copy()
-        X_test = X_.pop(i)
-        Y_test = Y_.pop(i)
-        X_train = np.vstack(X_[i] for i in range(len(X_)))
-        Y_train = np.vstack(Y_[i] for i in range(len(Y_)))
+    C_range = np.linspace(0.1, 5, 50)
+    d_range = np.arange(args.d_from, args.d_to, 1)
 
-        f = SVM.classifier(X_train, Y_train, D, C, kernel)
+    d_points, C_points = np.meshgrid(d_range, C_range)
 
-        predict_result = []
-        for x in X_test:
-            if f(x) > 0:
-                predict_result.append(1)
-            else:
-                predict_result.append(-1)
+    accuracy_matrix = np.zeros((len(C_range), len(d_range)))
+    for i in range(len(d_range)):
+        for j in range(len(C_range)):
+            d = d_points[j][i]
+            C = C_points[j][i]
 
-        accuracy = (len(Y_test) - np.sum((Y_test.reshape(-1) + predict_result) == 0)) / len(Y_test)
-        print(i, ': accuracy =', accuracy)
-        total_accuracy += accuracy
+            kernel = set_kernel(kernel_name, d=d, sigma=0)
 
-    print('accuracy: ', total_accuracy / N)
+            total_accuracy = 0
+            for n in range(N):
+                X_ = X.copy()
+                Y_ = Y.copy()
+                X_test = X_.pop(n)
+                Y_test = Y_.pop(n)
+                X_train = np.vstack(X_[m] for m in range(len(X_)))
+                Y_train = np.vstack(Y_[m] for m in range(len(Y_)))
 
+                f = classifier(X_train, Y_train, D, C, kernel)
+
+                predict_result = []
+                for x in X_test:
+                    if f(x) > 0:
+                        predict_result.append(1)
+                    else:
+                        predict_result.append(-1)
+
+                accuracy = (len(Y_test) - np.sum((Y_test.reshape(-1) + predict_result) == 0)) / len(Y_test)
+                total_accuracy += accuracy
+
+            print('d =', d, 'C =', C, 'accuracy =', total_accuracy / N)
+            accuracy_matrix[j][i] = total_accuracy / N
+
+    plt.axes()
+    color_list = ['purple', 'navy', 'blue', 'skyblue', 'darkcyan', 'green', 'olive', 'gold', 'orange', 'red']
+    CS = plt.contour(d_points, C_points, accuracy_matrix, 10, colors=color_list, linewidths=1, origin='lower')
+    plt.clabel(CS, inline=1, fontsize=10)
+    plt.xlim(d_points.min(), d_points.max())
+    plt.ylim(C_points.min(), C_points.max())
+    plt.xlabel('d', fontsize=16)
+    plt.ylabel('C', fontsize=16)
+    file = str(args.file).replace('sample_', '').replace('.txt', '')
+    date = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+    if not os.path.exists('./result'):
+        os.mkdir('./result')
+    plt.savefig('./result/contour_' + args.kernel + '_' + file + date + '.png')
+    print('contour_' + args.kernel + '_' + file + date + '.png is saved in result folder.')
+    print('please open:')
+    print('open result/contour_' + args.kernel + '_' + file + date + '.png')
 
 if __name__ == '__main__':
     cross_validation()
