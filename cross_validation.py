@@ -12,10 +12,12 @@ def set_args():
     parser.add_argument("n", help='division number to divide training data', type=int)
     parser.add_argument("kernel", help='select from "no", "polynomial", "gauss"', type=str)
     parser.add_argument("file", help='input data file name', type=str)
-    parser.add_argument("--d_from", type=float, help='for polynomial kernel', default=1)
-    parser.add_argument("--d_to", type=float, help='for polynomial kernel', default=10)
-    parser.add_argument("--sigma_from", type=float,  help='for gauss kernel', default=2)
-    parser.add_argument("--sigma_to", type=float,  help='for gauss kernel', default=5)
+    parser.add_argument("--d_from", type=float, help='start point of d range for polynomial kernel', default=1)
+    parser.add_argument("--d_to", type=float, help='end point of d range for polynomial kernel', default=10)
+    parser.add_argument("--d_interval", type=float, help='interval of d range for polynomial kernel', default=1)
+    parser.add_argument("--sigma_from", type=float,  help='start point of sigma range for gauss kernel', default=0.5)
+    parser.add_argument("--sigma_to", type=float,  help='end point of sigma range for gauss kernel', default=5)
+    parser.add_argument("--sigma_interval", type=float,  help='interval of sigma range for gauss kernel', default=0.5)
     args = parser.parse_args()
     return args
 
@@ -40,7 +42,7 @@ def cross_validation():
     X, Y, D = divide_data(file_name, N)
 
     C_range = np.linspace(0.1, 5, 50)
-    d_range = np.arange(args.d_from, args.d_to, 1)
+    d_range = np.arange(args.d_from, args.d_to, args.d_interval)
 
     d_points, C_points = np.meshgrid(d_range, C_range)
 
