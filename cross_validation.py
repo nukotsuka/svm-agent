@@ -48,20 +48,21 @@ def cross_validation():
     d_range = np.arange(args.d_from, args.d_to + args.d_interval, args.d_interval)
     sigma_range = np.arange(args.sigma_from, args.sigma_to + args.sigma_interval, args.sigma_interval)
 
-    kernel_param_points = []
-    C_points = []
+    kernel_param_range = []
     kernel_param_name = ''
     if kernel_name == 'polynomial':
-        kernel_param_points, C_points = np.meshgrid(d_range, C_range)
+        kernel_param_range = d_range
         kernel_param_name = 'd'
     elif kernel_name == 'gauss':
-        kernel_param_points, C_points = np.meshgrid(sigma_range, C_range)
+        kernel_param_range = sigma_range
         kernel_param_name = 'sigma'
 
-    accuracy_matrix = np.zeros((len(C_range), len(d_range)))
+    kernel_param_points, C_points = np.meshgrid(kernel_param_range, C_range)
+
+    accuracy_matrix = np.zeros((len(C_range), len(kernel_param_range)))
     max_accuracy = 0
     max_accuracy_params = {}
-    for i in range(len(d_range)):
+    for i in range(len(kernel_param_range)):
         for j in range(len(C_range)):
             kernel_param = kernel_param_points[j][i]
             C = C_points[j][i]
