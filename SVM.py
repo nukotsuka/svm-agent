@@ -64,8 +64,8 @@ def classifier(X, Y, D, C, kernel):
         sum += (Y[i] - tmp)
     theta = sum / len(M)
 
-    print('w =', w)
-    print('θ =', theta)
+    # print('w =', w)
+    # print('θ =', theta)
 
     def f(x):
         sum = 0.0
@@ -116,15 +116,15 @@ def set_args():
     return args
 
 
-def set_kernel(args):
-    if args.kernel == 'polynomial':
-        return polynomial_kernel(d=args.d)
-    elif args.kernel == 'gauss':
-        return gaussian_kernel(sigma=args.sigma)
-    elif args.kernel == 'no':
+def set_kernel(kernel, d, sigma):
+    if kernel == 'polynomial':
+        return polynomial_kernel(d=d)
+    elif kernel == 'gauss':
+        return gaussian_kernel(sigma=sigma)
+    elif kernel == 'no':
         return no_kernel
     else:
-        raise Exception(args.kernel + ' is invalid input. select from "no", "polynomial", "gauss".')
+        raise Exception(kernel + ' is invalid input. select from "no", "polynomial", "gauss".')
 
 
 def set_data(args):
@@ -140,7 +140,7 @@ def set_data(args):
 
 def main():
     args = set_args()
-    kernel = set_kernel(args)
+    kernel = set_kernel(args.kernel, args.d, args.sigma)
     data, D, X, Y = set_data(args)
     f = classifier(X, Y, D, args.c, kernel)
 
