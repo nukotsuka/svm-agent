@@ -5,6 +5,27 @@ from pylab import *
 import os
 
 
+
+def set_args():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("kernel", help='select from "no", "polynomial", "gauss"', type=str)
+    parser.add_argument("file", help='input data file name', type=str)
+    parser.add_argument("--d", type=float, help='for polynomial kernel', default=2)
+    parser.add_argument("--sigma", type=float,  help='for gauss kernel', default=np.sqrt(5))
+    parser.add_argument("--c", type=float,  help='slack variable for soft margin', default=1000)
+    parser.add_argument("--epsilon", type=float,  help='for epsilon insensitive function', default=0.1)
+    args = parser.parse_args()
+    return args
+
+
+def set_data(args):
+    data = np.loadtxt(args.file, delimiter=",")
+    D = len(data[0][:-1])  # dimension of data point
+    X = data[:, :D]
+    Y = data[:, D:]
+    return data, D, X, Y
+
+
 def lagrange(X, Y, C, epsilon, kernel):
     N = len(X)
     tmp = np.zeros((N * 2, N * 2))
@@ -53,7 +74,8 @@ def classifier(X, Y, C, epsilon, kernel):
 
     w = 0
     for k in np.hstack((S, S_star)):
-        w += (A[k] - A_star[k]) * X[k]
+        k_ = int(k)
+        w += (A[k_] - A_star[k_]) * X[k_]
 
     sum = 0
     for n in S:
@@ -67,15 +89,20 @@ def classifier(X, Y, C, epsilon, kernel):
         for k in range(len(A_star)):
             tmp += (A[k] - A_star[k]) * kernel(X[n], X[k])
         sum += -Y[n] - epsilon + tmp
-    theta = sum / len(np.hstack((S, S_star)))
 
-    print('w =', w)
-    print('θ =', theta)
+    if len(np.hstack((S, S_star))) == 0:
+        theta = 0
+    else:
+        theta = sum / len(np.hstack((S, S_star)))
+
+    # print('w =', w)
+    # print('θ =', theta)
 
     def f(x):
         sum = 0.0
         for k in np.hstack((S, S_star)):
-            sum += (A[k] - A_star[k]) * kernel(X[k], x)
+            k_ = int(k)
+            sum += (A[k_] - A_star[k_]) * kernel(X[k_], x)
         return sum - theta
 
     return f, S
@@ -113,31 +140,17 @@ def plot(args, data, f, S):
     print('open result/' + args.kernel + '_' + file + date + '.png')
 
 
-def set_args():
-    parser = argparse.ArgumentParser()
-    parser.add_argument("kernel", help='select from "no", "polynomial", "gauss"', type=str)
-    parser.add_argument("file", help='input data file name', type=str)
-    parser.add_argument("--d", type=float, help='for polynomial kernel', default=2)
-    parser.add_argument("--sigma", type=float,  help='for gauss kernel', default=np.sqrt(5))
-    parser.add_argument("--c", type=float,  help='slack variable for soft margin', default=1000)
-    parser.add_argument("--epsilon", type=float,  help='for epsilon insensitive function', default=0.1)
-    args = parser.parse_args()
-    return args
-
-
-def set_data(args):
-    data = np.loadtxt(args.file, delimiter=",")
-    D = len(data[0][:-1])  # dimension of data point
-    X = data[:, :D]
-    Y = data[:, D:]
-    return data, D, X, Y
-
 
 def main():
     args = set_args()
     kernel = set_kernel(args.kernel, args.d, args.sigma)
     data, D, X, Y = set_data(args)
     f, S = classifier(X, Y, args.c, args.epsilon, kernel)
+
+    for i in range(len(X)):
+        predict = f(X[i])
+        if np.abs(predict - Y[i]) > args.epsilon:
+            print('support vector:', i)
 
     if D == 2:
         plot(args, data, f, S)
