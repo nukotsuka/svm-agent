@@ -93,28 +93,6 @@ def cross_validation(args):
     print('min loss =', min_loss)
     print('min loss params =', min_loss_params)
 
-    if D == 2:
-        plot_contour(args, kernel_param_name, kernel_param_points, C_points, loss_matrix)
-
-
-def plot_contour(args, kernel_param_name, kernel_param_points, C_points, loss_matrix):
-    plt.axes()
-    color_list = ['purple', 'navy', 'blue', 'skyblue', 'darkcyan', 'green', 'olive', 'gold', 'orange', 'red']
-    CS = plt.contour(kernel_param_points, C_points, loss_matrix, 10, colors=color_list, linewidths=1, origin='lower')
-    plt.clabel(CS, inline=1, fontsize=10)
-    plt.xlim(kernel_param_points.min(), kernel_param_points.max())
-    plt.ylim(C_points.min(), C_points.max())
-    plt.xlabel(kernel_param_name, fontsize=16)
-    plt.ylabel('C', fontsize=16)
-    file = str(args.file).replace('sample_', '').replace('.txt', '')
-    date = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-    if not os.path.exists('./result'):
-        os.mkdir('./result')
-    plt.savefig('./result/contour_' + args.kernel + '_' + file + date + '.png')
-    print('contour_' + args.kernel + '_' + file + date + '.png is saved in result folder.')
-    print('please open:')
-    print('open result/contour_' + args.kernel + '_' + file + date + '.png')
-
 
 def main():
     args = set_args()
