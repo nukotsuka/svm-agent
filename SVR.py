@@ -95,9 +95,6 @@ def classifier(X, Y, C, epsilon, kernel):
     else:
         theta = sum / len(np.hstack((S, S_star)))
 
-    print('w =', w)
-    print('θ =', theta)
-
     def f(x):
         sum = 0.0
         for k in np.hstack((S, S_star)):
@@ -105,7 +102,7 @@ def classifier(X, Y, C, epsilon, kernel):
             sum += (A[k_] - A_star[k_]) * kernel(X[k_], x)
         return sum - theta
 
-    return f, S
+    return f, S, w, theta
 
 
 def show_result(X, Y, f, epsilon):
@@ -161,7 +158,10 @@ def main():
     args = set_args()
     kernel = set_kernel(args.kernel, args.d, args.sigma)
     data, D, X, Y = set_data(args)
-    f, S = classifier(X, Y, args.c, args.epsilon, kernel)
+    f, S, w, theta = classifier(X, Y, args.c, args.epsilon, kernel)
+
+    print('w =', w)
+    print('θ =', theta)
 
     show_result(X, Y, f, args.epsilon)
 
