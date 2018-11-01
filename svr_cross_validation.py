@@ -54,6 +54,9 @@ def cross_validation(args):
     elif kernel_name == 'gauss':
         kernel_param_range = sigma_range
         kernel_param_name = 'sigma'
+    elif kernel_name == 'no':
+        kernel_param_range = [0]
+        kernel_param_name = ''
 
     min_error = 100000000000
     min_error_params = {}
@@ -71,7 +74,7 @@ def cross_validation(args):
                     X_train = np.vstack(X_)
                     Y_train = np.vstack(Y_)
 
-                    f, S = classifier(X_train, Y_train, C, epsilon, kernel)
+                    f, S, w, theta = classifier(X_train, Y_train, C, epsilon, kernel)
 
                     squares_error = 0
                     for i in range(len(X_test)):
@@ -79,15 +82,25 @@ def cross_validation(args):
                     total_squares_error +=  squares_error / len(X_test)
 
                 average_squares_error = total_squares_error / N
-                print('{0} = {1:4}, C = {2:4}, epsilon = {3:4}, average_squares_error = {4}'.format(kernel_param_name, kernel_param, C, epsilon, average_squares_error[0]))
+
+                if kernel_name == 'no':
+                    print('C = {0:4}, epsilon = {1:4}, average squares error = {2}'
+                          .format(C, epsilon, average_squares_error[0]))
+                else:
+                    print('{0} = {1:4}, C = {2:4}, epsilon = {3:4}, average squares error = {4}'
+                          .format(kernel_param_name, kernel_param, C, epsilon, average_squares_error[0]))
+
                 if average_squares_error < min_error:
                     min_error = average_squares_error
-                    min_error_params = {kernel_param_name: kernel_param, 'C': C, 'epsilon': epsilon}
+                    if kernel_name == 'no':
+                        min_error_params = {'C': C, 'epsilon': epsilon}
+                    else:
+                        min_error_params = {kernel_param_name: kernel_param, 'C': C, 'epsilon': epsilon}
 
     print('file:', file_name)
     print('kernel:', kernel_name)
-    print('min error =', min_error)
-    print('min error params =', min_error_params)
+    print('min average square error =', min_error[0])
+    print('min average square error params =', min_error_params)
 
 
 def main():
