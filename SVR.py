@@ -95,8 +95,8 @@ def classifier(X, Y, C, epsilon, kernel):
     else:
         theta = sum / len(np.hstack((S, S_star)))
 
-    # print('w =', w)
-    # print('θ =', theta)
+    print('w =', w)
+    print('θ =', theta)
 
     def f(x):
         sum = 0.0
@@ -106,6 +106,22 @@ def classifier(X, Y, C, epsilon, kernel):
         return sum - theta
 
     return f, S
+
+
+def show_result(X, Y, f, epsilon):
+    for i in range(len(X)):
+        predict = f(X[i])
+        if np.abs(predict - Y[i]) > epsilon:
+            print('support vector:', i)
+
+    total_square_error = 0
+    for i in range(len(X)):
+        predict = f(X[i])
+        square_error = ((predict - Y[i]) ** 2)[0]
+        total_square_error += square_error
+        print('data: {0}, answer: {1}, predict: {2}, square error: {3}'.format(X[i], Y[i][0], predict[0], square_error))
+
+    print('average square error:', total_square_error / len(X))
 
 
 def plot(args, data, f, S):
@@ -147,10 +163,7 @@ def main():
     data, D, X, Y = set_data(args)
     f, S = classifier(X, Y, args.c, args.epsilon, kernel)
 
-    for i in range(len(X)):
-        predict = f(X[i])
-        if np.abs(predict - Y[i]) > args.epsilon:
-            print('support vector:', i)
+    show_result(X, Y, f, args.epsilon)
 
     if D == 2:
         plot(args, data, f, S)
