@@ -2,7 +2,6 @@ from SVM import set_kernel
 from SVR import classifier
 import argparse
 from pylab import *
-import os
 
 
 def set_args():
@@ -74,7 +73,7 @@ def cross_validation(args):
                     X_train = np.vstack(X_)
                     Y_train = np.vstack(Y_)
 
-                    f, S, w, theta = classifier(X_train, Y_train, C, epsilon, kernel)
+                    f, _, _, _ = classifier(X_train, Y_train, C, epsilon, kernel)
 
                     squares_error = 0
                     for i in range(len(X_test)):
