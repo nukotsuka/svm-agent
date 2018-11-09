@@ -3,7 +3,7 @@ import cvxopt
 import argparse
 from pylab import *
 import os
-
+import pandas
 
 
 def set_args():
@@ -18,12 +18,26 @@ def set_args():
     return args
 
 
-def set_data(args):
-    data = np.loadtxt(args.file, delimiter=",")
+def set_data(file_name):
+    if 'listing_data' in file_name:
+        # columns = ['price', 'number_of_reviews', 'review_scores_rating']
+        columns = ['price', 'latitude', 'longitude']
+        data_num = 100
+        listing_data = pandas.read_csv(file_name, usecols=columns).dropna()
+        listing_data = listing_data.dropna()[listing_data['price'].dropna().str.startswith('$')]
+        Y = listing_data['price'].head(data_num).map(lambda str: float(str[1:].replace(',', ''))).values.reshape((-1, 1))
+        X = listing_data.drop(columns=['price']).head(data_num).values
+        X = [*map(lambda x: [*map(lambda y: float(y), x)], X)]
+        data = np.hstack((X, Y))
+    else:
+        data = np.loadtxt(file_name, delimiter=",")
+
     D = len(data[0][:-1])  # dimension of data point
     X = data[:, :D]
     Y = data[:, D:]
-    return data, D, X, Y
+    standardized_X = (X - X.mean()) / X.std()
+    standardized_Y = (Y - Y.mean()) / Y.std()
+    return np.hstack((standardized_X, standardized_Y)), D, standardized_X, standardized_Y
 
 
 def lagrange(X, Y, C, epsilon, kernel):
@@ -47,14 +61,11 @@ def lagrange(X, Y, C, epsilon, kernel):
     A = cvxopt.matrix(np.hstack((np.ones(N), np.zeros(N))), (1, N * 2), 'd')
     b = cvxopt.matrix(0.0)
 
-    cvxopt.solvers.options['abstol'] = 1e-5
-    cvxopt.solvers.options['reltol'] = 1e-10
     cvxopt.solvers.options['show_progress'] = False
     result = cvxopt.solvers.qp(P, q, G=G, h=h, A=A, b=b, kktsolver='ldl')
     x = np.array(result['x']).reshape(N * 2)
     A = (x[:N] + x[N:]) / 2
     A_star = (x[N:] - x[:N]) / 2
-    # print(np.hstack((A, A_star)))
     return A, A_star
 
 
@@ -65,11 +76,11 @@ def classifier(X, Y, C, epsilon, kernel):
     S_star = []
 
     for i in range(len(A)):
-        if epsilon < A[i] < C - epsilon:
+        if 10e-4 < A[i] <= C:
             S.append(i)
 
     for i in range(len(A_star)):
-        if epsilon < A_star[i] < C - epsilon:
+        if 10e-4 < A_star[i] <= C:
             S_star.append(i)
 
     w = 0
@@ -105,12 +116,7 @@ def classifier(X, Y, C, epsilon, kernel):
     return f, S, w, theta
 
 
-def show_result(X, Y, f, epsilon):
-    for i in range(len(X)):
-        predict = f(X[i])
-        if np.abs(predict - Y[i]) > epsilon:
-            print('support vector:', i)
-
+def show_result(X, Y, f):
     total_square_error = 0
     for i in range(len(X)):
         predict = f(X[i])
@@ -121,15 +127,18 @@ def show_result(X, Y, f, epsilon):
     print('average square error:', total_square_error / len(X))
 
 
-def plot(args, data, f, S):
+def plot(args, X, f, S):
     for n in S:
-        plt.plot(data[n,0], data[n,1], 'bo', markersize=10)
+        plt.plot(X[n][0], X[n][1], 'bo', markersize=10)
 
-    for d in data:
-        plt.plot(d[0], d[1], 'kx')
+    for x in X:
+        plt.plot(x[0], x[1], 'kx')
 
-
-    X1, X2 = meshgrid(linspace(0, 1.2, 300), linspace(0, 1.2, 300))
+    X1_min = X[:, :1].min()
+    X1_max = X[:, :1].max()
+    X2_min = X[:, 1:].min()
+    X2_max = X[:, 1:].max()
+    X1, X2 = meshgrid(linspace(X1_min, X1_max, 300), linspace(X2_min, X2_max, 300))
     w, h = X1.shape
     X1.resize(X1.size)
     X2.resize(X2.size)
@@ -140,10 +149,14 @@ def plot(args, data, f, S):
     contours = contour(X1, X2, Z, linewidths=1, origin='lower')
     clabel(contours, inline=1, fontsize=10)
 
-    plt.xlim(0, 1.2)
-    plt.ylim(0, 1.2)
+    plt.xlim(X1_min, X1_max)
+    plt.ylim(X2_min, X2_max)
 
-    file = str(args.file).replace('sample_', '').replace('.txt', '')
+    file_name = args.file
+    if 'listing_data' in file_name:
+        file = str(file_name).replace('listing_data/', '').replace('.csv', '')
+    else:
+        file = str(file_name).replace('sample_', '').replace('.txt', '')
     date = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
     if not os.path.exists('./result'):
         os.mkdir('./result')
@@ -157,16 +170,16 @@ def plot(args, data, f, S):
 def main():
     args = set_args()
     kernel = set_kernel(args.kernel, args.d, args.sigma)
-    data, D, X, Y = set_data(args)
+    data, D, X, Y = set_data(args.file)
     f, S, w, theta = classifier(X, Y, args.c, args.epsilon, kernel)
 
     print('w =', w)
     print('θ =', theta)
 
-    show_result(X, Y, f, args.epsilon)
+    show_result(X, Y, f)
 
     if D == 2:
-        plot(args, data, f, S)
+        plot(args, X, f, S)
 
 
 if __name__ == '__main__':
