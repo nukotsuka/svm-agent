@@ -2,6 +2,7 @@ from SVM import set_kernel
 from SVR import classifier
 import argparse
 from pylab import *
+import pandas
 
 
 def set_args():
@@ -22,15 +23,29 @@ def set_args():
 
 
 def divide_data(file_name, N):
-    data = np.loadtxt(file_name, delimiter=",")
+    if 'listing_data' in file_name:
+        columns = ['price', 'latitude', 'longitude']
+        data_num = 100
+        listing_data = pandas.read_csv(file_name, usecols=columns).dropna()
+        listing_data = listing_data.dropna()[listing_data['price'].dropna().str.startswith('$')]
+        Y = listing_data['price'].head(data_num).map(lambda str: float(str[1:].replace(',', ''))).values.reshape(
+            (-1, 1))
+        X = listing_data.drop(columns=['price']).head(data_num).values
+        X = [*map(lambda x: [*map(lambda y: float(y), x)], X)]
+        data = np.hstack((X, Y))
+    else:
+        data = np.loadtxt(file_name, delimiter=",")
+
     D = len(data[0][:-1])  # dimension of data point
     np.random.shuffle(data)
     X = data[:, :D]
     Y = data[:, D:]
-    divided_X = np.split(X, N)
-    divided_Y = np.split(Y, N)
+    standardized_X = (X - X.mean()) / X.std()
+    standardized_Y = (Y - Y.mean()) / Y.std()
+    divided_X = np.split(standardized_X, N)
+    divided_Y = np.split(standardized_Y, N)
 
-    return divided_X, divided_Y, D
+    return divided_X, divided_Y
 
 
 def cross_validation(args):
@@ -38,7 +53,7 @@ def cross_validation(args):
     kernel_name = args.kernel
     file_name = args.file
 
-    X, Y, D = divide_data(file_name, N)
+    X, Y = divide_data(file_name, N)
 
     C_list = args.c_list
     epsilon_list = args.epsilon_list
