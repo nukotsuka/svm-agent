@@ -84,7 +84,7 @@ def train(X_train, X_validation, Y_train, Y_validation):
 
 def evaluate(SVR, X_test, Y_test):
     print("----------evaluation start----------")
-    ideal_total_income = np.sum(Y_test) - 30
+    ideal_total_income = np.sum(Y_test) * 0.9
     total_income = 0
     success_count = 0
     for i in range(len(X_test)):
