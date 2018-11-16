@@ -110,6 +110,8 @@ def evaluate(optimal_SVR, not_tuned_SVR, X_test, Y_test):
     magnification = 0.9
 
     for i in range(len(X_test)):
+        # optimal SVR strategy
+        # change magnification by victory or defeat
         if win_count > 1:
             magnification = 0.9
             win_count = 0
