@@ -7,11 +7,11 @@ import random
 # global variables
 file_name = "listing_data/Hong_Kong-listings.csv"
 kernel_name = "gauss"
-columns = ["price", "guests_included", "accommodates", "beds", "bathrooms"]
-data_num = 250 * 3
-epsilon = 0.1
-C_list = [1, 10, 100]
-sigma_range = np.arange(2, 3.1, 0.1)
+columns = ["price", "accommodates", "beds", "bathrooms", "bedrooms"]
+data_num = 300 * 3
+epsilon = 50
+C_list = [100, 250, 500]
+sigma_range = np.arange(1, 11, 1)
 price_min_limit = 100
 price_max_limit = 1500
 
@@ -54,7 +54,7 @@ def train(X_train, X_validation, Y_train, Y_validation):
     ideal_total_income = np.sum(Y_validation)
     print("ideal_total_income =", ideal_total_income)
 
-    max_total_income = 0
+    min_total_error = sys.float_info.max
     optimal_params = {"C": C_list[0], "sigma": sigma_range[0]}
     optimal_SVR = (lambda x: x)
 
@@ -64,18 +64,21 @@ def train(X_train, X_validation, Y_train, Y_validation):
             SVR, _, _, _ = classifier(X_train, Y_train, C, epsilon, kernel)
 
             total_income = 0
+            total_error = 0
             for i in range(len(X_validation)):
                 predict_price = SVR(X_validation[i])
                 correct_price = Y_validation[i]
+
+                total_error += (predict_price - correct_price) ** 2
+
                 if (predict_price == correct_price and random.randint(0, 1) == 0) or predict_price < correct_price:
                     total_income += predict_price
 
-            if total_income > max_total_income:
-                max_total_income = total_income
+            if total_error < min_total_error:
+                min_total_error = total_error
                 optimal_params = {"C": C, "sigma": sigma}
                 optimal_SVR = SVR
-
-            print("C = {0:4}, sigma = {1:4}, total_income = {2}".format(C, sigma, total_income))
+            print("C = {0:4}, sigma = {1:4}, total_income = {2}, error = {3}".format(C, sigma, total_income, total_error / len(X_validation)))
 
     print("----------training finish----------")
     print("optimal_params =", optimal_params)
@@ -84,16 +87,16 @@ def train(X_train, X_validation, Y_train, Y_validation):
 
 def evaluate(SVR, X_test, Y_test):
     print("----------evaluation start----------")
-    ideal_total_income = np.sum(Y_test) * 0.9
+    ideal_total_income = np.sum(Y_test)
     total_income = 0
     success_count = 0
     for i in range(len(X_test)):
-        predict_price = SVR(X_test[i])[0]
+        predict_price = SVR(X_test[i])[0] * 0.90
         correct_price = Y_test[i][0]
         if (predict_price == correct_price and random.randint(0, 1) == 0) or predict_price < correct_price:
             total_income += predict_price
             success_count += 1
-        print("predict_price = {0}, correct_price = {1}, diff = {2}".format(predict_price, correct_price, correct_price - predict_price))
+        # print("predict_price = {0}, correct_price = {1}, diff = {2}".format(predict_price, correct_price, correct_price - predict_price))
 
     print("----------evaluation finish----------")
     print("success_count = {0}, total_income = {1}, ideal_total_income = {2}, ratio = {3}".format(success_count, total_income, ideal_total_income, total_income / ideal_total_income))
